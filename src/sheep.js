@@ -1,22 +1,36 @@
-/* -------------------- Sheep Spam Function -------------------- */
-function spamSheep() {
-  for (let i = 0; i < 20; i++) { // 20 sheep
+let sheepInterval;
+
+export function spamSheep(scene) {
+  
+
+  // Spawn sheep continuously
+  sheepInterval = setInterval(() => {
     const sheep = document.createElement('div');
     sheep.textContent = '🐑';
     sheep.style.position = 'absolute';
-    sheep.style.fontSize = `${Math.random() * 30 + 20}px`;
+    sheep.style.fontSize = `${Math.random() * 40 + 30}px`;
     sheep.style.left = `${Math.random() * window.innerWidth}px`;
-    sheep.style.top = `${Math.random() * window.innerHeight}px`;
+    sheep.style.top = `-50px`;
     sheep.style.pointerEvents = 'none';
+    sheep.style.zIndex = 9999;
     document.body.appendChild(sheep);
 
-    const animDuration = 2000 + Math.random() * 1000;
+    const distance = window.innerHeight + 100;
+    const duration = 5000 + Math.random() * 3000;
+    const swing = Math.random() * 100 - 50; // rock left/right
+
     sheep.animate(
       [
-        { transform: `translateY(0px)`, opacity: 1 },
-        { transform: `translateY(-100px)`, opacity: 0 }
+        { transform: `translate(0px,0px)`, opacity: 1 },
+        { transform: `translate(${swing}px,${distance}px)`, opacity: 0 }
       ],
-      { duration: animDuration, easing: 'ease-out' }
+      { duration, easing: 'ease-in-out' }
     ).onfinish = () => sheep.remove();
-  }
+  }, 300);
+  
+  // Stop function
+  return function stopSheep() {
+    clearInterval(sheepInterval);
+ 
+  };
 }
