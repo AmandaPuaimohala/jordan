@@ -131,16 +131,38 @@ const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
 
 const bakedTextureMap = { 
-  woodFloor:'/images/floor.png', room:'/images/walls4k.png', Shelf:'/images/shelf.png',
-  rug:'/images/rug4k.png', bookStack:'/images/staticBooks.png', chair:'/images/chair.png', 
-  smallFurniture:'/images/sideTable.png', topRoom:'/images/topRoom.png', 
-  smallLanterninside:'/images/lights.png', plants:'/images/plants.png', globe:'/images/diffuse.png', 
-  Chihuahua:'/images/chis.png', milk:'/images/milk.png', cat:'/images/tekstura_kota.png', 
-  mug:'/images/mug.png', katana:'/images/katana.png', grounf:'/images/ground4k.png', 
-  daisy:'/images/daisy.png', windowOne:'images/window1.png', windowTwo:'images/window2.png', 
-  book1:'/images/book1.png', book2:'/images/book2.png', book3:'/images/book8.png', book4:'/images/book4.png', 
-  book5:'/images/book5.png', book6:'/images/book6.png', book53:'/images/book7.png', mountainDew:'/images/dew.png', 
-  pot:'/images/daisyPot.png', dinky:'/images/dinks.png', pillow:'images/pillow.png' 
+  woodFloor:'/images/floor.jpg', 
+  room:'/images/walls4k.jpg', 
+  Shelf:'/images/shelf.jpg',
+  rug:'/images/rug4k.jpg', 
+  bookStack:'/images/staticBooks.jpg', 
+  chair:'/images/chair.jpg', 
+  smallFurniture:'/images/sideTable.jpg', 
+  topRoom:'/images/topRoom.jpg', 
+  smallLanterninside:'/images/lights.jpg', 
+  plants:'/images/plants.jpg', 
+  globe:'/images/diffuse.jpg', 
+  Chihuahua:'/images/chis.jpg', 
+  milk:'/images/milk.jpg', 
+  cat:'/images/tekstura_kota.jpg', 
+  mug:'/images/mug.jpg', 
+  katana:'/images/katana.jpg', 
+  ground:'/images/Ground.jpg', 
+  daisy:'/images/daisy.jpg', 
+  windowOne:'/images/window1.jpg', 
+  windowTwo:'/images/window2.jpg', 
+  book1:'/images/book1.jpg', 
+  book2:'/images/book2.jpg', 
+  book3:'/images/book8.jpg', 
+  book4:'/images/book4.jpg', 
+  book5:'/images/book5.jpg', 
+  book6:'/images/book6.jpg', 
+  book53:'/images/book7.jpg', 
+  mountainDew:'/images/dew.jpg', 
+  pot:'/images/daisyPot.jpg', 
+  dinky:'/images/dinks.jpg', 
+  pillow:'/images/pillow.jpg',
+  frame: '/images/frame.jpg'
 };
 
 const bakedTextures = {};
