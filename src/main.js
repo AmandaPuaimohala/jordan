@@ -421,6 +421,11 @@ function startTick(){
       mesh.rotation.y = THREE.MathUtils.lerp(mesh.rotation.y, data.baseRot.y + (isHover ? 0 : 0), 0.1);
     });
 
+    // -------------------- Camera Clamp --------------------
+    const MIN_Y = 1;   // minimum height
+    const MAX_Y = 10;  // maximum height
+    camera.position.y = THREE.MathUtils.clamp(camera.position.y, MIN_Y, MAX_Y);
+
     document.body.style.cursor = hovered ? 'pointer':'default';
     renderer.render(scene, camera);
     requestAnimationFrame(tick);
