@@ -70,13 +70,35 @@
     color: #fff;
     box-shadow: 0 0 12px #597276, 0 0 25px #423A37 inset;
     transition: all 0.3s ease;
-    animation: glowPulse 2.5s infinite alternate;
+    
+
 
     &:hover {
       transform: scale(1.05) rotate(-0.5deg);
       box-shadow: 0 0 22px #CFC2AD, 0 0 40px #597276 inset;
     }
   }
+
+  /* Add exit animation for the whole screen */
+#enterScreen.exit {
+  animation: flyUpFade 1s ease forwards;
+}
+
+@keyframes flyUpFade {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-30px) scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100vh) scale(1.2);
+  }
+}
+
 }
 
 // Gradient water animation - slow horizontal ripple

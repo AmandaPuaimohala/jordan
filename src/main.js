@@ -8,6 +8,8 @@ import { daisyEvent } from './daisy.js';
 import { showGlobePlace } from './globe.js';
 import { showEightBall } from './eightBall.js';
 import { createFlappyBook } from './flappyBook.js';
+import { startAquarius } from './aquarius.js';
+import { startGhostEvent } from './ghostEvent.js';
 
 /* -------------------- Canvas & Core -------------------- */
 const canvas = document.querySelector('#experience-canvas');
@@ -33,10 +35,15 @@ renderer.shadowMap.enabled = true;
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, 1, 0);
-controls.minPolarAngle = Math.PI / 6;
-controls.maxPolarAngle = Math.PI / 1.7;
+
+// Vertical rotation limits (prevents looking below floor)
+controls.minPolarAngle = Math.PI / 6;    // top limit
+controls.maxPolarAngle = Math.PI / 2.1;  // bottom limit (adjust to prevent camera from going too low)
+
+// Distance limits
 controls.minDistance = 4;
 controls.maxDistance = 20;
+
 
 /* -------------------- Enter Screen -------------------- */
 const enterScreen = document.createElement('div');
@@ -50,6 +57,8 @@ document.body.appendChild(enterScreen);
 
 const enterButton = document.getElementById('enterButton');
 
+
+``
 /* -------------------- Interaction -------------------- */
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -58,7 +67,7 @@ let hovered = null;
 
 const INTERACTIVE_NAMES = [
   'book1','book2','book3','book4','book5','book6','book53',
-  'globe','mug','daisy','Chihuahua',
+  'globe','daisy','Chihuahua',
 ];
 
 const popupInfo = {
@@ -122,6 +131,95 @@ function setNightMode(on) {
     scene.fog = null;
   }
 }
+
+function setNightVision(on) {
+  if (on) {
+    const nightTint = new THREE.Color(0x444444); // dark gray
+    scene.traverse(obj => {
+      if (obj.material && obj.material.color) {
+        // save original
+        obj.userData.originalColor = obj.material.color.clone();
+
+        // convert to grayscale + darken
+        const c = obj.userData.originalColor;
+        const gray = (c.r + c.g + c.b) / 3;
+        obj.material.color.setRGB(gray * nightTint.r, gray * nightTint.g, gray * nightTint.b);
+      }
+    });
+
+    scene.fog = new THREE.Fog(0x222222, 1, 30); // subtle gray fog
+  } else {
+    scene.traverse(obj => {
+      if (obj.material && obj.userData.originalColor) {
+        obj.material.color.copy(obj.userData.originalColor);
+        delete obj.userData.originalColor;
+      }
+    });
+    scene.fog = null;
+  }
+}
+
+// -------------------- Ghost Cleanse Button --------------------
+let ghostCleanseBtn = null;
+
+function createGhostCleanseButton(onCleanse) {
+  // Avoid creating multiple
+  if (ghostCleanseBtn) return;
+
+  ghostCleanseBtn = document.createElement('button');
+  ghostCleanseBtn.textContent = '✨ Cleanse the Area ✨';
+  ghostCleanseBtn.style.cssText = `
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(90deg, #ff4444, #ffbb00);
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(255,200,100,0.6);
+    transition: all 0.3s ease;
+    z-index: 1000;
+  `;
+
+  ghostCleanseBtn.addEventListener('mouseenter', () => {
+    ghostCleanseBtn.style.boxShadow = '0 0 40px rgba(255,200,100,0.8)';
+    ghostCleanseBtn.style.transform = 'translateX(-50%) scale(1.1)';
+  });
+  ghostCleanseBtn.addEventListener('mouseleave', () => {
+    ghostCleanseBtn.style.boxShadow = '0 0 20px rgba(255,200,100,0.6)';
+    ghostCleanseBtn.style.transform = 'translateX(-50%) scale(1)';
+  });
+
+  ghostCleanseBtn.addEventListener('click', () => {
+    // Play a quick “burn/flash” effect
+    const flash = document.createElement('div');
+    flash.style.cssText = `
+      position: absolute; top:0; left:0; width:100%; height:100%;
+      background: radial-gradient(circle, rgba(255,200,100,0.8) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.5s ease-out;
+    `;
+    document.body.appendChild(flash);
+    requestAnimationFrame(() => flash.style.opacity = '1');
+    setTimeout(() => flash.style.opacity = '0', 50);
+    setTimeout(() => document.body.removeChild(flash), 600);
+
+    onCleanse(); // call the stopGhost and floating reset
+    document.body.removeChild(ghostCleanseBtn);
+    ghostCleanseBtn = null;
+  });
+
+  document.body.appendChild(ghostCleanseBtn);
+}
+
+
+
 
 /* -------------------- Loaders & Preloading -------------------- */
 const textureLoader = new THREE.TextureLoader();
@@ -189,10 +287,16 @@ gltfLoader.load('/models/JordanReadingRoom.glb', (gltf)=>{
 });
 
 /* -------------------- Event Handlers -------------------- */
-let stopSheep=null, stopDaisy=null, stopGlobe=null, stopEightBall=null, stopFlappy=null;
+let stopSheep=null, stopDaisy=null, stopGlobe=null, stopEightBall=null, stopFlappy=null, stopAquarius = null, stopGhost = null;
+; 
+
 const flappy = createFlappyBook(scene, camera);
 const normalBg = new THREE.Color(0xffcaa8);
 const sheepBg = new THREE.Color(0x0b1e3f);
+
+// When you want to show the text:
+
+
 scene.background = normalBg;
 
 function stopAllEvents(){
@@ -201,6 +305,12 @@ function stopAllEvents(){
   if(stopGlobe){ stopGlobe(); stopGlobe=null;}
   if(stopEightBall){ stopEightBall(); stopEightBall=null;}
   if(stopFlappy){ stopFlappy(); stopFlappy=null;}
+  if(stopAquarius){ stopAquarius(); stopAquarius=null;}
+  if (stopGhost) { stopGhost(); stopGhost = null;
+}
+
+ 
+
   popup.style.display='none';
 }
 
@@ -221,6 +331,8 @@ function startTick(){
   window.addEventListener('click', ()=>{
     if(!hovered) return;
     stopAllEvents();
+
+    
     switch(hovered.name){
       case 'book3':
         popupText.textContent = popupInfo[hovered.name];
@@ -247,6 +359,40 @@ function startTick(){
         flappy.book.onClick();
         stopFlappy = flappy.stopFlappy;
         break;
+
+      case 'book1':
+        popup.style.display='none';
+        const aquariusInstance = startAquarius(scene, camera,hovered);
+        stops.aquarius = aquariusInstance.stop;
+        break;
+
+      case 'book53':
+        popup.style.display = 'none';
+        setNightVision(true);
+
+  // Objects to float
+        const floatObjs = [];
+        preloadedScene.traverse(obj => {
+          if (obj.name === 'milk' || obj.name === 'mug' || obj.name === 'Chihuahua' ||obj.name === 'globe' ||obj.name === 'cat' || obj.name === 'mountainDew' || obj.name === 'book4' || obj.name === 'book6') {
+            floatObjs.push(obj);
+          }
+        });
+
+        const ghost = startGhostEvent(scene, floatObjs);
+        stopGhost = () => {
+        ghost.stop();
+        setNightVision(false);
+        };
+        // Create the “cleanse the area” button
+        createGhostCleanseButton(() => {
+          stopGhost();
+    // optional: play a small particle or sound effect here
+        });
+        break;
+
+
+
+
       default:
         popupText.textContent = popupInfo[hovered.name] || `You clicked: ${hovered.name}`;
         popup.style.display='block';
