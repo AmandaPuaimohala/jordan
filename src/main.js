@@ -10,6 +10,7 @@ import { showEightBall } from './eightBall.js';
 import { createFlappyBook } from './flappyBook.js';
 import { startAquarius } from './aquarius.js';
 import { startGhostEvent } from './ghostEvent.js';
+import { startWolfSpirits } from './wolf.js';
 
 /* -------------------- Canvas & Core -------------------- */
 const canvas = document.querySelector('#experience-canvas');
@@ -19,9 +20,8 @@ scene.background = new THREE.Color(0xffcaa8);
 
 /* -------------------- Camera -------------------- */
 const camera = new THREE.PerspectiveCamera(70, sizes.width / sizes.height, 0.1, 100);
-camera.position.set(6, 6, 9); // shift left (x=-5), keep height and distance
-camera.lookAt(0, 1, 0);       // look at center of the room (y=1)
-
+camera.position.set(0, 7, 13); 
+camera.lookAt(5, 5, 0);      
 scene.add(camera);
 
 /* -------------------- Renderer -------------------- */
@@ -56,8 +56,6 @@ enterScreen.innerHTML = `
 document.body.appendChild(enterScreen);
 
 const enterButton = document.getElementById('enterButton');
-
-
 ``
 /* -------------------- Interaction -------------------- */
 const raycaster = new THREE.Raycaster();
@@ -134,20 +132,17 @@ function setNightMode(on) {
 
 function setNightVision(on) {
   if (on) {
-    const nightTint = new THREE.Color(0x444444); // dark gray
+    const nightTint = new THREE.Color(0x777777); 
     scene.traverse(obj => {
       if (obj.material && obj.material.color) {
-        // save original
         obj.userData.originalColor = obj.material.color.clone();
-
-        // convert to grayscale + darken
         const c = obj.userData.originalColor;
         const gray = (c.r + c.g + c.b) / 3;
         obj.material.color.setRGB(gray * nightTint.r, gray * nightTint.g, gray * nightTint.b);
       }
     });
-
-    scene.fog = new THREE.Fog(0x222222, 1, 30); // subtle gray fog
+    scene.fog = new THREE.Fog(0x444444, 2, 40);
+ 
   } else {
     scene.traverse(obj => {
       if (obj.material && obj.userData.originalColor) {
@@ -158,12 +153,72 @@ function setNightVision(on) {
     scene.fog = null;
   }
 }
+// -------------------- Wolf Heart Release Button --------------------
+let wolfReleaseBtn = null;
+
+export function createWolfReleaseButton(onRelease, delay = 3000) {
+  if (wolfReleaseBtn) return;
+
+  wolfReleaseBtn = document.createElement('button');
+  wolfReleaseBtn.textContent = '🖤 Release the Heart 🖤';
+
+  wolfReleaseBtn.style.cssText = `
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    padding: 14px 32px;
+    font-size: 1.05rem;
+    letter-spacing: 0.12em;
+    border-radius: 999px;
+    border: 1px solid rgba(214,195,163,0.4);
+    background: radial-gradient(circle at top, rgba(40,55,70,0.9), rgba(10,15,20,0.95));
+    color: #d6c3a3;
+    cursor: pointer;
+    box-shadow: 0 0 18px rgba(140,180,255,0.25), 0 0 35px rgba(30,40,60,0.6) inset;
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.2s ease, transform 1.2s ease, box-shadow 0.3s ease;
+    z-index: 1000;
+  `;
+
+  wolfReleaseBtn.onmouseenter = () => {
+    wolfReleaseBtn.style.transform = 'translateX(-50%) translateY(6px) scale(1.05)';
+    wolfReleaseBtn.style.boxShadow = '0 0 30px rgba(180,210,255,0.6), 0 0 45px rgba(40,60,90,0.8) inset';
+  };
+
+  wolfReleaseBtn.onmouseleave = () => {
+    wolfReleaseBtn.style.transform = 'translateX(-50%) translateY(6px) scale(1)';
+    wolfReleaseBtn.style.boxShadow = '0 0 18px rgba(140,180,255,0.25), 0 0 35px rgba(30,40,60,0.6) inset';
+  };
+
+  wolfReleaseBtn.onclick = () => {
+    wolfReleaseBtn.style.opacity = '0';
+    wolfReleaseBtn.style.pointerEvents = 'none';
+    setTimeout(() => {
+      wolfReleaseBtn.remove();
+      wolfReleaseBtn = null;
+    }, 800);
+    onRelease();
+  };
+
+  document.body.appendChild(wolfReleaseBtn);
+
+  // Fade in after delay (default 3s)
+  setTimeout(() => {
+    wolfReleaseBtn.style.opacity = '1';
+    wolfReleaseBtn.style.pointerEvents = 'auto';
+    wolfReleaseBtn.style.transform = 'translateX(-50%) translateY(0px)';
+  }, delay);
+}
+
 
 // -------------------- Ghost Cleanse Button --------------------
 let ghostCleanseBtn = null;
 
 function createGhostCleanseButton(onCleanse) {
-  // Avoid creating multiple
+  
   if (ghostCleanseBtn) return;
 
   ghostCleanseBtn = document.createElement('button');
@@ -195,7 +250,6 @@ function createGhostCleanseButton(onCleanse) {
   });
 
   ghostCleanseBtn.addEventListener('click', () => {
-    // Play a quick “burn/flash” effect
     const flash = document.createElement('div');
     flash.style.cssText = `
       position: absolute; top:0; left:0; width:100%; height:100%;
@@ -210,15 +264,61 @@ function createGhostCleanseButton(onCleanse) {
     setTimeout(() => flash.style.opacity = '0', 50);
     setTimeout(() => document.body.removeChild(flash), 600);
 
-    onCleanse(); // call the stopGhost and floating reset
+    onCleanse();
     document.body.removeChild(ghostCleanseBtn);
     ghostCleanseBtn = null;
   });
 
   document.body.appendChild(ghostCleanseBtn);
 }
+let flappyCloseBtn = null;
 
+export function createFlappyCloseButton(stopFlappyCallback) {
+  // Remove existing button if any
+  if (flappyCloseBtn) {
+    flappyCloseBtn.remove();
+    flappyCloseBtn = null;
+  }
 
+  // Create the button
+  flappyCloseBtn = document.createElement('button');
+  flappyCloseBtn.textContent = '🕹 Close Flappy 🕹';
+  flappyCloseBtn.style.cssText = `
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(90deg, #44aaff, #00bbff);
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(100,200,255,0.6);
+    transition: all 0.3s ease;
+    z-index: 1000;
+  `;
+
+  // Hover effects
+  flappyCloseBtn.addEventListener('mouseenter', () => {
+    flappyCloseBtn.style.boxShadow = '0 0 40px rgba(100,200,255,0.8)';
+    flappyCloseBtn.style.transform = 'translateX(-50%) scale(1.1)';
+  });
+  flappyCloseBtn.addEventListener('mouseleave', () => {
+    flappyCloseBtn.style.boxShadow = '0 0 20px rgba(100,200,255,0.6)';
+    flappyCloseBtn.style.transform = 'translateX(-50%) scale(1)';
+  });
+
+  // Click handler — properly stops Flappy
+  flappyCloseBtn.addEventListener('click', () => {
+    if (stopFlappyCallback) stopFlappyCallback(); // stop game loop, remove canvas, listeners
+    flappyCloseBtn.remove();
+    flappyCloseBtn = null;
+  });
+
+  document.body.appendChild(flappyCloseBtn);
+}
 
 
 /* -------------------- Loaders & Preloading -------------------- */
@@ -283,36 +383,35 @@ gltfLoader.load('/models/JordanReadingRoom.glb', (gltf)=>{
       interactables.set(child, {basePos: child.position.clone(), baseRot: child.rotation.clone()});
     }
   });
-  preloadedScene = gltf.scene; // store for later
+  preloadedScene = gltf.scene; 
 });
 
 /* -------------------- Event Handlers -------------------- */
-let stopSheep=null, stopDaisy=null, stopGlobe=null, stopEightBall=null, stopFlappy=null, stopAquarius = null, stopGhost = null;
+let stopSheep=null, stopDaisy=null, stopGlobe=null, stopEightBall=null, stopFlappy=null, stopAquarius = null, stopGhost = null, stopWolf = null;
 ; 
+let isEventActive = false;
 
-const flappy = createFlappyBook(scene, camera);
+
 const normalBg = new THREE.Color(0xffcaa8);
 const sheepBg = new THREE.Color(0x0b1e3f);
-
-// When you want to show the text:
+const flappy = createFlappyBook(scene, camera);
 
 
 scene.background = normalBg;
-
 function stopAllEvents(){
-  if(stopSheep){ stopSheep(); stopSheep=null; scene.background=normalBg; setNightMode(false);}
-  if(stopDaisy){ stopDaisy(); stopDaisy=null;}
-  if(stopGlobe){ stopGlobe(); stopGlobe=null;}
-  if(stopEightBall){ stopEightBall(); stopEightBall=null;}
-  if(stopFlappy){ stopFlappy(); stopFlappy=null;}
-  if(stopAquarius){ stopAquarius(); stopAquarius=null;}
-  if (stopGhost) { stopGhost(); stopGhost = null;
+  if (stopSheep)    { stopSheep(); stopSheep = null; scene.background = normalBg; setNightMode(false); }
+  if (stopDaisy)    { stopDaisy(); stopDaisy = null; }
+  if (stopGlobe)    { stopGlobe(); stopGlobe = null; }
+  if (stopEightBall){ stopEightBall(); stopEightBall = null; }
+  if (stopFlappy)   { stopFlappy(); stopFlappy = null; }
+  if (stopAquarius) { stopAquarius(); stopAquarius = null; }
+  if (stopGhost)    { stopGhost(); stopGhost = null; }
+  if (stopWolf)     { stopWolf(); stopWolf = null; }
+
+  popup.style.display = 'none';
+  isEventActive = false;
 }
 
- 
-
-  popup.style.display='none';
-}
 
 window.addEventListener('mousemove', e=>{
   mouse.x = (e.clientX / sizes.width)*2-1;
@@ -320,84 +419,119 @@ window.addEventListener('mousemove', e=>{
 });
 
 /* -------------------- Enter Button -------------------- */
-enterButton.addEventListener('click', ()=>{
-  enterScreen.style.display='none';
-  if(preloadedScene) scene.add(preloadedScene); // add preloaded room
-  startTick(); // start animation loop and events
+enterButton.addEventListener('click', () => {
+  // 1️⃣ Add the exit class
+  enterScreen.classList.add('exit');
+
+  // 2️⃣ Wait for animation to finish (~1s)
+  enterScreen.addEventListener('animationend', function handler() {
+    enterScreen.style.display = 'none'; // hide after animation
+    scene.add(preloadedScene);           // add the scene
+    startTick();                         // start animation loop
+
+    // remove the listener so it doesn't fire again
+    enterScreen.removeEventListener('animationend', handler);
+  });
 });
 
-/* -------------------- Animation Loop -------------------- */
-function startTick(){
-  window.addEventListener('click', ()=>{
-    if(!hovered) return;
-    stopAllEvents();
 
-    
-    switch(hovered.name){
+/* -------------------- Animation Loop -------------------- */
+function startTick() {
+  window.addEventListener('click', () => {
+    if (isEventActive) return;
+    if (!hovered) return; // only allow starting an event when hovering
+
+    stopAllEvents();
+    isEventActive = true;
+
+    switch (hovered.name) {
+
+      /* -------------------- Book & Popup Events -------------------- */
       case 'book3':
         popupText.textContent = popupInfo[hovered.name];
-        popup.style.display='block';
+        popup.style.display = 'block';
         scene.background = sheepBg;
         setNightMode(true);
+        isEventActive = true;
         stopSheep = spamSheep();
         break;
+
       case 'daisy':
         popupText.textContent = popupInfo[hovered.name];
-        popup.style.display='block';
+        popup.style.display = 'block';
         stopDaisy = daisyEvent();
         break;
-      case 'globe':
-        stopGlobe = showGlobePlace(popup);
-        break;
+
       case 'Chihuahua':
         popupText.textContent = popupInfo[hovered.name];
-        popup.style.display='block';
+        popup.style.display = 'block';
         stopEightBall = showEightBall(popup);
-        break;
-      case 'book6':
-        popup.style.display='none';
-        flappy.book.onClick();
-        stopFlappy = flappy.stopFlappy;
         break;
 
       case 'book1':
-        popup.style.display='none';
-        const aquariusInstance = startAquarius(scene, camera,hovered);
-        stops.aquarius = aquariusInstance.stop;
+        popup.style.display = 'none';
+        const aquariusInstance = startAquarius(scene, camera, hovered);
+        stopAllEvents();
         break;
+
+      case 'book2':
+        popup.style.display = 'none';
+        stopWolf = startWolfSpirits(scene);
+        createWolfReleaseButton(() => {
+          stopAllEvents();
+        });
+        break;
+
+      case 'book6':
+          popup.style.display = 'none';
+          if (!stopFlappy) {
+              flappy.book.onClick();
+              stopFlappy = () => {
+                  flappy.stopFlappy(); 
+                  stopFlappy = null;
+              };
+          }
+          if (!flappyCloseBtn) {
+              createFlappyCloseButton(() => {
+                  stopFlappy?.(); 
+                  stopAllEvents(); 
+              });
+          }
+          break;
+
 
       case 'book53':
         popup.style.display = 'none';
         setNightVision(true);
 
-  // Objects to float
         const floatObjs = [];
         preloadedScene.traverse(obj => {
-          if (obj.name === 'milk' || obj.name === 'mug' || obj.name === 'Chihuahua' ||obj.name === 'globe' ||obj.name === 'cat' || obj.name === 'mountainDew' || obj.name === 'book4' || obj.name === 'book6') {
-            floatObjs.push(obj);
-          }
+          const floatNames = ['milk', 'mug', 'Chihuahua', 'globe', 'cat', 'mountainDew', 'book4', 'book6'];
+          if (floatNames.includes(obj.name)) floatObjs.push(obj);
         });
-
         const ghost = startGhostEvent(scene, floatObjs);
         stopGhost = () => {
-        ghost.stop();
-        setNightVision(false);
+          ghost.stop();
+          setNightVision(false);
         };
-        // Create the “cleanse the area” button
         createGhostCleanseButton(() => {
-          stopGhost();
-    // optional: play a small particle or sound effect here
+          stopAllEvents();
         });
         break;
 
+      /* -------------------- Globe Event -------------------- */
+      case 'globe':
+        stopGlobe = showGlobePlace(popup);
+        break;
 
-
-
+      /* -------------------- Default Event -------------------- */
       default:
         popupText.textContent = popupInfo[hovered.name] || `You clicked: ${hovered.name}`;
-        popup.style.display='block';
+        popup.style.display = 'block';
     }
   });
+
+
 
   closeBtn.addEventListener('click', stopAllEvents);
 
@@ -422,8 +556,8 @@ function startTick(){
     });
 
     // -------------------- Camera Clamp --------------------
-    const MIN_Y = 1;   // minimum height
-    const MAX_Y = 10;  // maximum height
+    const MIN_Y = 1;   
+    const MAX_Y = 10; 
     camera.position.y = THREE.MathUtils.clamp(camera.position.y, MIN_Y, MAX_Y);
 
     document.body.style.cursor = hovered ? 'pointer':'default';

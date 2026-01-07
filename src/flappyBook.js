@@ -14,25 +14,23 @@ export function createFlappyBook(scene, camera) {
   const gameGroup = new THREE.Group();
   scene.add(gameGroup);
   gameGroup.position.set(5, 6, 1);
-  gameGroup.scale.set(2, 2, 2); // doubles the size of everything
+  gameGroup.scale.set(2, 2, 2);
 
+  // Bird as emoji
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.font = '100px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🐟', 64, 64);
 
-// Bird as an emoji
-const canvas = document.createElement('canvas');
-canvas.width = 128;
-canvas.height = 128;
-const ctx = canvas.getContext('2d');
-ctx.font = '100px serif';
-ctx.textAlign = 'center';
-ctx.textBaseline = 'middle';
-ctx.fillText('🐟', 64, 64); // pick any emoji
-
-const texture = new THREE.CanvasTexture(canvas);
-const bird = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture }));
-bird.scale.set(0.3, 0.3, 1); // adjust size
-gameGroup.add(bird);
-bird.position.set(-0.4, 0, 0);
-
+  const texture = new THREE.CanvasTexture(canvas);
+  const bird = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture }));
+  bird.scale.set(0.3, 0.3, 1);
+  gameGroup.add(bird);
+  bird.position.set(-0.4, 0, 0);
 
   // Pipes
   const pipes = [];
@@ -43,6 +41,7 @@ bird.position.set(-0.4, 0, 0);
   let birdY = 0;
   let score = 0;
   let lastPipeTime = 0;
+  let animationId = null;
 
   const gravity = 0.002;
   const flapPower = 0.04;
@@ -84,51 +83,52 @@ bird.position.set(-0.4, 0, 0);
     if (!running) return;
     velocity = flapPower;
   }
-  window.addEventListener('click', flap);
-  window.addEventListener('keydown', (e) => {
+
+  function addInputListeners() {
+    window.addEventListener('click', flap);
+    window.addEventListener('keydown', keyDownHandler);
+  }
+
+  function removeInputListeners() {
+    window.removeEventListener('click', flap);
+    window.removeEventListener('keydown', keyDownHandler);
+  }
+
+  function keyDownHandler(e) {
     if (e.code === 'Space') flap();
-  });
+  }
 
   /* -------------------- GAME LOOP -------------------- */
   function animate(time) {
     if (!running) return;
 
-    // bird physics
     velocity -= gravity;
     birdY += velocity;
     bird.position.y = birdY;
 
-// floor / ceiling
-    const floorLimit = -0.7;  // lower floor
-    const ceilingLimit = 0.7; // higher ceiling
+    const floorLimit = -0.7;
+    const ceilingLimit = 0.7;
 
     if (birdY < floorLimit || birdY > ceilingLimit) {
-        gameOver();
-        return;
+      gameOver();
+      return;
     }
 
-
-    // spawn pipes
     if (time - lastPipeTime > 1800) {
       spawnPipes();
       lastPipeTime = time;
     }
 
-    // move pipes
     for (let i = pipes.length - 1; i >= 0; i--) {
       const p = pipes[i];
       p.position.x -= pipeSpeed;
 
-      // collision
-      if (
-        Math.abs(p.position.x - bird.position.x) < 0.12 &&
-        Math.abs(p.position.y - bird.position.y) < 0.3
-      ) {
+      if (Math.abs(p.position.x - bird.position.x) < 0.12 &&
+          Math.abs(p.position.y - bird.position.y) < 0.3) {
         gameOver();
         return;
       }
 
-      // cleanup
       if (p.position.x < -1.5) {
         gameGroup.remove(p);
         pipes.splice(i, 1);
@@ -136,7 +136,7 @@ bird.position.set(-0.4, 0, 0);
       }
     }
 
-    requestAnimationFrame(animate);
+    animationId = requestAnimationFrame(animate);
   }
 
   /* -------------------- HELPERS -------------------- */
@@ -168,39 +168,16 @@ bird.position.set(-0.4, 0, 0);
     lastPipeTime = 0;
   }
 
-function gameOver() {
-  running = false;
-  overlayDiv.innerHTML = `
-    Game Over!<br>Score: ${score}<br>Click START to play again!
-  `;
-
-  // Add START button back
-  overlayDiv.appendChild(startButton);
-
-  // Create a close button
-  const closeBtn = document.createElement('button');
-  closeBtn.textContent = 'CLOSE';
-  closeBtn.style.cssText = `
-    display:block;
-    margin-top: 10px;
-    padding: 8px 16px;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-  `;
-  overlayDiv.appendChild(closeBtn);
-
-  closeBtn.addEventListener('click', () => {
-    overlayDiv.style.display = 'none';
-    stopFlappy(); // stops game
-  });
-
-  resetGame();
-  gameGroup.visible = false;
-  overlayDiv.style.display = 'block';
-}
-
+  function gameOver() {
+    running = false;
+    overlayDiv.innerHTML = `
+      Game Over!<br>Score: ${score}<br>Click START to play again!
+    `;
+    overlayDiv.appendChild(startButton);
+    gameGroup.visible = false;
+    removeInputListeners();
+    overlayDiv.style.display = 'block';
+  }
 
   /* -------------------- START / STOP -------------------- */
   function startFlappy() {
@@ -209,26 +186,31 @@ function gameOver() {
     overlayDiv.style.display = 'none';
     resetGame();
     gameGroup.visible = true;
-    requestAnimationFrame(animate);
+    addInputListeners();
+    animationId = requestAnimationFrame(animate);
   }
 
   function stopFlappy() {
     running = false;
+    if (animationId) cancelAnimationFrame(animationId);
+    animationId = null;
     resetGame();
     gameGroup.visible = false;
     overlayDiv.style.display = 'none';
+    removeInputListeners();
   }
 
+  /* -------------------- BOOK CLICK -------------------- */
   book.onClick = () => {
-    overlayDiv.style.display = 'block';
-    overlayDiv.innerHTML = "Face Dinky Portrait and stand behind table. \n Press SPACE to flap!\nClick START to begin!";
+    overlayDiv.innerHTML = "Face Dinky Portrait and stand behind table.\nPress SPACE to flap!\nClick START to begin!";
     overlayDiv.appendChild(startButton);
+    overlayDiv.style.display = 'block';
   };
 
   startButton.addEventListener('click', startFlappy);
 
-  /* -------------------- RETURN -------------------- */
   gameGroup.visible = false;
+
   return {
     book,
     startFlappy,
