@@ -2,8 +2,6 @@ let sheepInterval;
 
 export function spamSheep(scene) {
   
-
-  // Spawn sheep continuously
   sheepInterval = setInterval(() => {
     const sheep = document.createElement('div');
     sheep.textContent = '🐑';
@@ -17,7 +15,7 @@ export function spamSheep(scene) {
 
     const distance = window.innerHeight + 100;
     const duration = 5000 + Math.random() * 3000;
-    const swing = Math.random() * 100 - 50; // rock left/right
+    const swing = Math.random() * 100 - 50; 
 
     sheep.animate(
       [
@@ -28,7 +26,6 @@ export function spamSheep(scene) {
     ).onfinish = () => sheep.remove();
   }, 300);
   
-  // Stop function
   return function stopSheep() {
     clearInterval(sheepInterval);
  

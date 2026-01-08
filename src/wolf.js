@@ -29,7 +29,6 @@ export function startWolfSpirits(scene) {
   for (let i = 0; i < HEART_COUNT; i++) {
     const t = Math.random() * Math.PI * 2;
 
-    // Heart shape formula
     const x = 0.16 * Math.pow(Math.sin(t), 3) * scale * squashX;
     const y =
       (0.13 * Math.cos(t) -
@@ -42,7 +41,6 @@ export function startWolfSpirits(scene) {
 
     targets.set([x, y, z], i * 3);
 
-    // start scattered
     positions.set(
       [
         (Math.random() - 0.5) * 50,
@@ -74,7 +72,6 @@ export function startWolfSpirits(scene) {
     }
     heartGeo.attributes.position.needsUpdate = true;
 
-    // Spin the heart
     heart.rotation.y += 0.0015;
 
     requestAnimationFrame(animate);

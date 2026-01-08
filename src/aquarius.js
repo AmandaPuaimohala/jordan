@@ -8,7 +8,6 @@ export function startAquarius(scene, camera) {
   const letters = [];
   let launchListener;
 
-  // Stop function
   function stopAquarius() {
     active = false;
     if (launchListener) window.removeEventListener('click', launchListener);
@@ -21,11 +20,8 @@ export function startAquarius(scene, camera) {
   }
 
   const result = { stop: stopAquarius };
-
-  // The words to display
   const words = 'Aquarius Independence'.split('');
 
-  // Helper: create a sprite for a single letter
   function createLetterSprite(char, color = '#66ccff', size = 64) {
     const canvas = document.createElement('canvas');
     canvas.width = 128;
@@ -40,23 +36,21 @@ export function startAquarius(scene, camera) {
     const texture = new THREE.CanvasTexture(canvas);
     const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
     const sprite = new THREE.Sprite(material);
-    sprite.scale.set(0.5, 0.5, 0.5); // world size
+    sprite.scale.set(0.5, 0.5, 0.5); 
     return sprite;
   }
 
-  // Spawn letters in front of camera
   const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
   const basePos = new THREE.Vector3().copy(camera.position).add(forward.multiplyScalar(2));
   words.forEach((char, i) => {
     const sprite = createLetterSprite(char);
     sprite.position.copy(basePos);
-    sprite.position.x += (i - words.length / 2) * 0.3; // spread horizontally
+    sprite.position.x += (i - words.length / 2) * 0.3;
     sprite.userData = { yOffset: Math.random() * 0.5, speed: 0.002 + Math.random() * 0.003 };
     group.add(sprite);
     letters.push(sprite);
   });
 
-  // Animate flow
   function animate() {
     if (!active) return;
     requestAnimationFrame(animate);
@@ -70,10 +64,9 @@ export function startAquarius(scene, camera) {
 
   animate();
 
-  // Click to spread letters outward
   launchListener = () => {
     letters.forEach(sprite => {
-      sprite.userData.speed += 0.003; // speed up flow
+      sprite.userData.speed += 0.003; 
     });
   };
   window.addEventListener('click', launchListener);

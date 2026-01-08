@@ -15,11 +15,10 @@ export function showGlobePlace(popup) {
   const popupText = document.getElementById('popup-text');
   if (popupText) popupText.textContent = '';
 
-  // Remove any previous container
+
   const existingContainer = document.getElementById('globe-row');
   if (existingContainer) existingContainer.remove();
 
-  // Container for images
   const container = document.createElement('div');
   container.id = 'globe-row';
   container.style.cssText = `
@@ -33,7 +32,6 @@ export function showGlobePlace(popup) {
   popup.appendChild(container);
   popup.style.display = 'block';
 
-  // Move close button up so images don’t cover it
   const closeBtn = document.getElementById('close-popup');
   closeBtn.style.cssText = `
     display: block;
@@ -44,10 +42,10 @@ export function showGlobePlace(popup) {
   `;
 
   let index = 0;
-  let active = true; // flag to stop
+  let active = true; 
 
   function showNextImage() {
-    if (!active) return; // stop if flagged
+    if (!active) return; 
     if (index >= globePlaces.length) index = 0;
     const place = globePlaces[index++];
     
@@ -70,7 +68,6 @@ export function showGlobePlace(popup) {
 
     requestAnimationFrame(() => imgDiv.style.opacity = '1');
 
-    // fade out and remove after 2s
     setTimeout(() => {
       imgDiv.style.opacity = '0';
       setTimeout(() => imgDiv.remove(), 2000);
@@ -95,7 +92,6 @@ plane.style.cssText = `
 `;
 popup.appendChild(plane);
 
-// Move it across the screen
 plane.animate(
   [
     { transform: 'translateX(0)' },
@@ -108,16 +104,12 @@ plane.animate(
   }
 );
 
-// Fade out after 4 seconds
 setTimeout(() => {
   plane.style.opacity = '0';
-  // Optional: remove after fade completes
   setTimeout(() => plane.remove(), 1000);
 }, 2000);
 
 
-
-  // Stop function
   return function stopGlobe() {
     active = false;
     clearTimeout(globeTimeout);

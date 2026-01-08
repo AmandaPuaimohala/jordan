@@ -35,12 +35,8 @@ renderer.shadowMap.enabled = true;
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, 1, 0);
-
-// Vertical rotation limits (prevents looking below floor)
-controls.minPolarAngle = Math.PI / 6;    // top limit
-controls.maxPolarAngle = Math.PI / 2.1;  // bottom limit (adjust to prevent camera from going too low)
-
-// Distance limits
+controls.minPolarAngle = Math.PI / 6;    
+controls.maxPolarAngle = Math.PI / 2.1;  
 controls.minDistance = 4;
 controls.maxDistance = 20;
 
@@ -204,8 +200,6 @@ export function createWolfReleaseButton(onRelease, delay = 3000) {
   };
 
   document.body.appendChild(wolfReleaseBtn);
-
-  // Fade in after delay (default 3s)
   setTimeout(() => {
     wolfReleaseBtn.style.opacity = '1';
     wolfReleaseBtn.style.pointerEvents = 'auto';
@@ -274,13 +268,11 @@ function createGhostCleanseButton(onCleanse) {
 let flappyCloseBtn = null;
 
 export function createFlappyCloseButton(stopFlappyCallback) {
-  // Remove existing button if any
   if (flappyCloseBtn) {
     flappyCloseBtn.remove();
     flappyCloseBtn = null;
   }
 
-  // Create the button
   flappyCloseBtn = document.createElement('button');
   flappyCloseBtn.textContent = '🕹 Close Flappy 🕹';
   flappyCloseBtn.style.cssText = `
@@ -300,7 +292,6 @@ export function createFlappyCloseButton(stopFlappyCallback) {
     z-index: 1000;
   `;
 
-  // Hover effects
   flappyCloseBtn.addEventListener('mouseenter', () => {
     flappyCloseBtn.style.boxShadow = '0 0 40px rgba(100,200,255,0.8)';
     flappyCloseBtn.style.transform = 'translateX(-50%) scale(1.1)';
@@ -310,9 +301,8 @@ export function createFlappyCloseButton(stopFlappyCallback) {
     flappyCloseBtn.style.transform = 'translateX(-50%) scale(1)';
   });
 
-  // Click handler — properly stops Flappy
   flappyCloseBtn.addEventListener('click', () => {
-    if (stopFlappyCallback) stopFlappyCallback(); // stop game loop, remove canvas, listeners
+    if (stopFlappyCallback) stopFlappyCallback();
     flappyCloseBtn.remove();
     flappyCloseBtn = null;
   });
@@ -420,16 +410,11 @@ window.addEventListener('mousemove', e=>{
 
 /* -------------------- Enter Button -------------------- */
 enterButton.addEventListener('click', () => {
-  // 1️⃣ Add the exit class
   enterScreen.classList.add('exit');
-
-  // 2️⃣ Wait for animation to finish (~1s)
   enterScreen.addEventListener('animationend', function handler() {
-    enterScreen.style.display = 'none'; // hide after animation
-    scene.add(preloadedScene);           // add the scene
-    startTick();                         // start animation loop
-
-    // remove the listener so it doesn't fire again
+    enterScreen.style.display = 'none'; 
+    scene.add(preloadedScene);           
+    startTick();                        
     enterScreen.removeEventListener('animationend', handler);
   });
 });
@@ -439,14 +424,11 @@ enterButton.addEventListener('click', () => {
 function startTick() {
   window.addEventListener('click', () => {
     if (isEventActive) return;
-    if (!hovered) return; // only allow starting an event when hovering
-
+    if (!hovered) return; 
     stopAllEvents();
     isEventActive = true;
-
     switch (hovered.name) {
 
-      /* -------------------- Book & Popup Events -------------------- */
       case 'book3':
         popupText.textContent = popupInfo[hovered.name];
         popup.style.display = 'block';
@@ -519,12 +501,10 @@ function startTick() {
         });
         break;
 
-      /* -------------------- Globe Event -------------------- */
       case 'globe':
         stopGlobe = showGlobePlace(popup);
         break;
 
-      /* -------------------- Default Event -------------------- */
       default:
         popupText.textContent = popupInfo[hovered.name] || `You clicked: ${hovered.name}`;
         popup.style.display = 'block';

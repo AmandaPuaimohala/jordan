@@ -10,7 +10,6 @@ export function startGhostEvent(scene, floatObjects = []) {
   const originalPositions = new Map();
   const originalRotations = new Map();
 
-  // Save original local positions and rotations
   floatObjects.forEach(obj => {
     originalPositions.set(obj, obj.position.clone());
     originalRotations.set(obj, obj.rotation.clone());
@@ -28,7 +27,7 @@ export function startGhostEvent(scene, floatObjects = []) {
     });
   });
 
-  // ---------- ORB TEXTURE ----------
+
   const texture = (() => {
     const c = document.createElement('canvas');
     c.width = c.height = 64;
@@ -41,7 +40,7 @@ export function startGhostEvent(scene, floatObjects = []) {
     return new THREE.CanvasTexture(c);
   })();
 
-  // ---------- CREATE ORBS ----------
+  
   const ORB_COUNT = 50;
   for (let i = 0; i < ORB_COUNT; i++) {
     const material = new THREE.SpriteMaterial({
@@ -67,7 +66,7 @@ export function startGhostEvent(scene, floatObjects = []) {
     orbs.push(orb);
   }
 
-  let returning = false; // flag for floating back
+  let returning = false; 
 
   // ---------- ANIMATION ----------
   function animate() {
@@ -87,7 +86,6 @@ export function startGhostEvent(scene, floatObjects = []) {
         Math.sin(t * 0.3 + orb.userData.offset) * 0.4;
     });
 
-    // Float objects
     floatObjects.forEach(obj => {
       const data = floatData.get(obj);
 
@@ -103,7 +101,7 @@ export function startGhostEvent(scene, floatObjects = []) {
         obj.rotation.y += data.rotSpeed * 0.5;
         obj.rotation.z += data.rotSpeed * 0.3;
       } else {
-        // Smoothly float back
+
         obj.position.lerp(originalPositions.get(obj), 0.05);
         obj.rotation.x = THREE.MathUtils.lerp(obj.rotation.x, originalRotations.get(obj).x, 0.05);
         obj.rotation.y = THREE.MathUtils.lerp(obj.rotation.y, originalRotations.get(obj).y, 0.05);
@@ -116,16 +114,14 @@ export function startGhostEvent(scene, floatObjects = []) {
 
   // ---------- STOP ----------
   function stopGhost() {
-    returning = true; // start floating back
+    returning = true;
 
-    // Remove orbs immediately
     orbs.forEach(o => {
       o.material.dispose();
       group.remove(o);
     });
     texture.dispose();
 
-    // Poll until objects reach original positions, then remove group
     const checkReturn = () => {
       let done = true;
       floatObjects.forEach(obj => {
